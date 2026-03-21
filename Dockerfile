@@ -10,4 +10,4 @@ RUN chmod +x entrypoint.sh
 # 暴露 SOCKS5 端口
 EXPOSE 1080
 
-CMD["./entrypoint.sh"]
+CMD ["./entrypoint.sh"]
