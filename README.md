@@ -133,3 +133,7 @@ docker compose up -d
 
 ### 📝 全自动免配置
 你不需要手动提取任何密钥。首次启动时，MicroWARP 会在后台全自动向 Cloudflare 申请注册免费 WARP 账户，提取节点信息，并永久保存在本地的数据卷中。
+
+---
+
+*特别鸣谢: __LinuxDo__, __NodeSeek__ (排名不分先后)* ❤️
