@@ -9,25 +9,25 @@ mkdir -p /etc/wireguard
 # ==========================================
 if [ ! -f "$WG_CONF" ]; then
     echo "==> [MicroWARP] 未检测到配置，正在全自动初始化 Cloudflare WARP..."
-    
+
     ARCH=$(uname -m)
     case "$ARCH" in
         x86_64) WGCF_ARCH="amd64" ;;
         aarch64) WGCF_ARCH="arm64" ;;
         *) echo "==> [ERROR] 不支持的架构: $ARCH"; exit 1 ;;
     esac
-    
-    wget -qO wgcf "https://github.com/ViRb3/wgcf/releases/download/v2.2.22/wgcf_2.2.22_linux_${WGCF_ARCH}"
+
+    wget -qO wgcf "https://github.com/ViRb3/wgcf/releases/download/v2.2.30/wgcf_2.2.30_linux_${WGCF_ARCH}"
     chmod +x wgcf
-    
+
     echo "==> [MicroWARP] 正在向 CF 注册设备..."
     ./wgcf register --accept-tos > /dev/null
-    
+
     echo "==> [MicroWARP] 正在生成 WireGuard 配置文件..."
     ./wgcf generate > /dev/null
-    
+
     mv wgcf-profile.conf "$WG_CONF"
-    
+
     # 【核心安全】阅后即焚：删除注册工具和生成的账号明文文件
     rm -f wgcf wgcf-account.toml
     echo "==> [MicroWARP] 节点配置生成成功！"
@@ -38,9 +38,7 @@ fi
 # ==========================================
 # 2. 强力洗白与内核兼容性处理 (魔改 wg0.conf)
 # ==========================================
-# 删除多余的内网 IP 路由和 DNS，让全局流量通过 wg0
-sed -i 's/^AllowedIPs.*/AllowedIPs = 0.0.0.0\/0/g' "$WG_CONF"
-sed -i '/Address.*:/d' "$WG_CONF" 
+# 删 DNS 就足够了，删多了跑不了了
 sed -i '/^DNS.*/d' "$WG_CONF"
 
 # 删除 Alpine 系统自带 wg-quick 中不兼容的路由标记
@@ -67,7 +65,7 @@ wg-quick up wg0 > /dev/null 2>&1
 
 echo "==> [MicroWARP] 当前出口 IP 已成功变更为："
 # 获取最新的 CF 溯源 IP (加入 || true 防止网络波动导致脚本退出)
-curl -s https://1.1.1.1/cdn-cgi/trace | grep ip= || true
+(curl -s https://1.1.1.1/cdn-cgi/trace | grep ip= || true) &
 
 # ==========================================
 # 4. 启动 C 语言 SOCKS5 代理服务 (带高级参数绑定)
