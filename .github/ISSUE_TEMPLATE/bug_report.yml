@@ -1,0 +1,96 @@
+name: "Bug Report / Bug 反馈"
+description: "Submit errors, connection failures, or logs. / 提交运行错误、连接失败或报错日志。"
+labels:
+  - "bug"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### [MUST READ] Please read carefully before submitting / [必读] 提交前请务必仔细阅读
+        
+        Thank you for using MicroWARP! Most connection issues are strongly related to the host's network environment.
+        感谢您使用 MicroWARP！绝大多数连接问题与宿主机的网络环境强相关。
+        
+        1. **Strictly PROHIBITED on servers in Mainland China / 严禁在中国大陆境内机器运行**
+           NEVER run this program on cloud servers located in Mainland China (e.g., Alibaba Cloud, Tencent Cloud)! Running proxy tools on domestic clouds will not only be precisely blocked by the GFW, but will also trigger the cloud provider's security audit, directly resulting in permanent account bans and server termination. Any issues caused by such environments will be strictly ignored.
+           绝对不要在阿里云、腾讯云等任何位于中国大陆境内的云服务器上运行此程序！在国内云上运行此类代理穿透工具，不仅必定被 GFW 精准阻断，更会触发云厂商的安全风控审计，直接导致您的云账号被永久封禁、服务器被强制清退（封号封机）。此类环境导致的任何问题一律不予处理。
+           
+        2. **Region & Cloud Provider Blocks / 地区与云厂商阻断**
+           Restricted regions like RU / IR can barely access the CF API directly. IP ranges of Oracle Cloud are highly likely to be strictly risk-controlled and blocked by CF natively.
+           RU / IR 等受限地区几乎无法直接访问 CF API；甲骨文云 (Oracle Cloud) 的 IP 段大概率被 CF 官方严格风控和拦截。
+           
+        3. **'resolve' Field Validation Restrictions / Resolve 字段校验限制**
+           Some CF-WARP datacenters (e.g., in HK) forcibly validate the `resolve` field in handshake packets. Since MicroWARP uses a minimalist Linux kernel native `wg0` interface, this field cannot be forged currently. If you encounter "failed to get outbound IP", simply being able to Ping the Endpoint is NOT enough; you MUST try replacing it with a valid Endpoint IP from other datacenters to bypass this.
+           部分地区（如 HK）的 CF-WARP 机房会强制校验握手包中的 `resolve` 字段。由于 MicroWARP 采用极简的 Linux 内核原生 `wg0` 态，目前暂无法伪造该字段。如果遇到“获取出口 IP 失败”，不仅仅是 Endpoint 能 Ping 通就行，必须尝试更换其他机房的有效 Endpoint IP 才能绕过。
+
+  - type: dropdown
+    id: virtualization
+    attributes:
+      label: "Server Virtualization Type / 服务器虚拟化类型"
+      description: |
+        The current kernel-level mode heavily relies on network privileges. Note: Before the Fallback feature is implemented, non-KVM environments cannot run this program.
+        目前的内核级模式强依赖于网卡特权。注意：Fallback 降级功能实装前，非 KVM 环境无法运行。
+      options:
+        - "KVM / Regular Cloud VPS (AWS, etc.)"
+        - "Bare Metal / 独立物理机"
+        - "LXC Container / LXC 容器"
+        - "OpenVZ (OVZ)"
+        - "Unknown / 不清楚"
+    validations:
+      required: true
+
+  - type: input
+    id: server_network
+    attributes:
+      label: "Server Region, Provider & ASN / 服务器所在地区, 服务商与 ASN"
+      description: |
+        This is crucial for troubleshooting Cloudflare network blocks.
+        这对于排查 Cloudflare 的网络封锁非常重要。
+      placeholder: "e.g., Japan / Oracle Cloud / AS31898 (例如: 日本 / 甲骨文云 / AS31898)"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: troubleshooting
+    attributes:
+      label: "Preliminary Troubleshooting / 前置排查步骤"
+      description: |
+        Please confirm you have tried the following:
+        请确认您已经尝试过以下操作：
+      options:
+        - label: "I confirm that the server is NOT located in Mainland China, and I am aware of the account ban risks of running this on domestic cloud servers. / 我已经确认当前服务器不在中国大陆境内，我清楚在国内云服务器运行的封号风险。"
+          required: true
+        - label: "I have tried deleting the original config volume (e.g., `warp-data` dir) and letting the program regenerate the account config. / 我已经尝试过删除原有的配置卷 (如 `warp-data` 目录) 并让程序重新生成账号配置。"
+          required: true
+        - label: "I have tried changing the Endpoint via the `ENDPOINT_IP` environment variable to bypass datacenter blocks. / 我已经尝试过通过环境变量 `ENDPOINT_IP` 更换其他的 Endpoint IP 以应对机房拦截。"
+          required: false
+
+  - type: textarea
+    id: special_env
+    attributes:
+      label: "Special Network Architecture (Optional) / 特殊网络架构说明 (选填)"
+      description: |
+        Are you using SD-WAN (e.g., Tailscale / ZeroTier), or sharing the Docker network stack (e.g., `network_mode: service:microwarp` with other containers)?
+        是否有进行异地组网 (如 Tailscale / ZeroTier)，或者使用了 Docker 的共用网络栈 (如 `network_mode: service:microwarp` 搭配其他容器)？
+      placeholder: "Leave blank if no special network architecture... / 如果没有特殊网络架构，请留空..."
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Problem Description & Reproduction Steps / 问题描述与复现步骤"
+      description: |
+        Please clearly describe what happened and how to reproduce the issue.
+        请清晰地描述发生了什么，以及如何复现该问题。
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Runtime Logs / 运行日志"
+      description: |
+        Please paste the FULL output of `docker logs microwarp`.
+        请粘贴 `docker logs microwarp` 的完整输出内容。
+      render: shell
+    validations:
+      required: true
