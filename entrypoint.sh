@@ -1,6 +1,13 @@
 #!/bin/sh
 set -e
 
+github_auth_header() {
+    GITHUB_API_TOKEN=${GITHUB_TOKEN:-${GH_TOKEN:-}}
+    if [ -n "$GITHUB_API_TOKEN" ]; then
+        echo "Authorization: Bearer $GITHUB_API_TOKEN"
+    fi
+}
+
 build_wgcf_download_url() {
     WGCF_VER=$1
     WGCF_ARCH=$2
@@ -34,7 +41,12 @@ if [ ! -f "$WG_CONF" ]; then
         *) echo "==> [ERROR] 不支持的架构: $ARCH"; exit 1 ;;
     esac
 
-    WGCF_VER=$(curl -sL https://api.github.com/repos/ViRb3/wgcf/releases/latest | grep '"tag_name"' | sed 's/.*"v\(.*\)".*/\1/')
+    GITHUB_AUTH_HEADER=$(github_auth_header)
+    if [ -n "$GITHUB_AUTH_HEADER" ]; then
+        WGCF_VER=$(curl -sL -H "$GITHUB_AUTH_HEADER" "https://api.github.com/repos/ViRb3/wgcf/releases/latest" | grep '"tag_name"' | sed 's/.*"v\(.*\)".*/\1/')
+    else
+        WGCF_VER=$(curl -sL "https://api.github.com/repos/ViRb3/wgcf/releases/latest" | grep '"tag_name"' | sed 's/.*"v\(.*\)".*/\1/')
+    fi
     echo "==> [MicroWARP] 检测到最新 wgcf 版本: v${WGCF_VER}"
     wget --timeout=15 -qO wgcf "$(build_wgcf_download_url "$WGCF_VER" "$WGCF_ARCH")"
     chmod +x wgcf
