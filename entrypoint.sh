@@ -127,7 +127,7 @@ echo "==> [MicroWARP] 正在启动 Linux 内核级 wg0 网卡..."
 wg-quick up wg0 > /dev/null 2>&1
 
 # 3.3 注入源地址策略路由 (Policy-Based Routing) 修复入站非对称路由劫持
-if [ -n "$ORIG_IP" ] && [ -n "$ORIG_GW" ] $$ [ -n "$ORIG_DEV" ]; then
+if [ -n "$ORIG_IP" ] && [ -n "$ORIG_GW" ] && [ -n "$ORIG_DEV" ]; then
     echo "==> [MicroWARP] 正在注入策略路由修复非对称路由死锁 (源IP: $ORIG_IP)..."
     # 添加容错 || true，防止部分精简版内核不支持多路由表导致启动崩溃
     ip rule add from "$ORIG_IP" table 128 priority 100 2>/dev/null || true
